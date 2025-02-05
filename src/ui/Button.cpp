@@ -5,7 +5,7 @@ Button::Button(std::string name, sf::Vector2f pos, std::function<void()> _onClic
 	box.setSize({200,50});
 	box.setFillColor(sf::Color::Black);
 
-	if (!font.loadFromFile("../../../assets/Roboto-Regular.ttf")) {
+	if (!font.loadFromFile("../../../assets/fonts/Roboto-Regular.ttf")) {
 		std::cout << "Could not load the font!";
 	}
 

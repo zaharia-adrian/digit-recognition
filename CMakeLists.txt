@@ -12,7 +12,7 @@ endif()
 project ("digit-recognition")
 
 # Add source to this project's executable.
-add_executable (digit-recognition "src/digit-recognition.cpp" "src/digit-recognition.h" "src/grid/Grid.cpp" "src/ui/Button.cpp" "src/managers/FileManager.cpp" "src/nn/NN.cpp")
+add_executable (digit-recognition "src/digit-recognition.cpp" "src/digit-recognition.h" "src/views/Grid.cpp" "src/ui/Button.cpp" "src/managers/FileManager.cpp" "src/nn/NN.cpp" "src/views/Plot.cpp")
 
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")

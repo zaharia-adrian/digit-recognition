@@ -24,6 +24,7 @@ public:
 	Grid(int, int);
 
 	void reset();
+	std::vector<float> getV();
 
 	void handleEvent(sf::RenderWindow&, sf::Event);
 	void updateGrid(sf::Vector2i);

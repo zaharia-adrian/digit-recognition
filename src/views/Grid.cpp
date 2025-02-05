@@ -7,15 +7,18 @@ Grid::Grid(int _rows, int _columns) :
 	flow(1.0f)
 {
 
-	v.resize(rows * columns);
+	v = std::vector<float>(rows * columns, 0.f);
 	pos.resize(rows * columns);
 
-	auto images = FileManager::loadMNISTImages("../../../assets/mnist/train-images.idx3-ubyte");
 	for (int idx = 0; idx < rows * columns; idx++) {
 		pos[idx] = sf::Vector2f(posX + idx % columns * (boxSize + gap) - boxSize / 2, posY + idx / columns * (boxSize + gap) - boxSize / 2);
-		v[idx] = (static_cast<float>(images[100][idx]) / 255);
+		
 	}
+	
+}
 
+std::vector<float> Grid::getV() {
+	return v;
 }
 
 void Grid::handleEvent(sf::RenderWindow& window, sf::Event event) {
