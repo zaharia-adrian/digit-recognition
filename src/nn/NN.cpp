@@ -1,11 +1,9 @@
-
 #include "NN.hpp"
 
 
 NN::NN(std::vector<int> _layersSizes) {
 	layersCount = _layersSizes.size();
 	layersSizes = _layersSizes;
-
 
 	o.emplace_back(std::vector<float>(layersSizes[0]));
 	b.emplace_back();
@@ -17,24 +15,27 @@ NN::NN(std::vector<int> _layersSizes) {
 		o.emplace_back(std::vector<float>(layersSizes[i]));
 		e.emplace_back(std::vector<float>(layersSizes[i]));
 	}
-	//initRandom();
+	//initRandom();	
 	//train();
 	initFromFile();
+	//test();
 }
 void NN::initRandom() {
 	std::default_random_engine generator;
-	std::normal_distribution<float> distribution(0, 0.01f);
 
 	for (int layer = 1; layer < layersCount; layer++) {
 		for (int i = 0; i < layersSizes[layer]; i++) {
+
+			std::normal_distribution<float> distribution(0, sqrt(2.0f / (layersSizes[layer - 1] + layersSizes[layer])));
+
 			for (int j = 0;j < layersSizes[layer - 1]; j++)
 				w[layer][i][j] = distribution(generator);	
-			b[layer][i] = distribution(generator);
+			b[layer][i] = 0.0f;
 		}
 	}
 }
 void NN::initFromFile() {
-	FILE* fptr = fopen("../../../src/nn/params.txt", "r");
+	FILE* fptr = fopen("../../../assets/params/params.txt", "r");
 	if (fptr == NULL) {
 		std::cout << "Error loading the file!";
 		return;
@@ -49,7 +50,7 @@ void NN::initFromFile() {
 	fclose(fptr);
 }
 void NN::saveToFile() {
-	FILE *fptr = fopen("../../../src/nn/params.txt", "w");
+	FILE *fptr = fopen("../../../assets/params/params.txt", "w");
 	if (fptr == NULL) {
 		std::cout << "Error loading the file!";
 		return;
@@ -64,13 +65,12 @@ void NN::saveToFile() {
 	fclose(fptr);
 }
 void NN::initInputLayer(std::vector<float> inputLayer) {
-	o[0] = inputLayer;
+	for(int i=0;i<layersSizes[0];i++)
+		o[0][i] = inputLayer[i] * 0.99 + 0.01;
 }
 std::vector<float> NN::query(std::vector<float> inputLayer) {
 	initInputLayer(inputLayer);
 	forwardProp();
-	for (int i = 0;i <= 9;i++) std::cout << o[layersCount - 1][i] << '\n';
-	std::cout << "\n";
 	return o[layersCount - 1];
 }
 void NN::train() {
@@ -78,21 +78,52 @@ void NN::train() {
 	///1st attempt, initial learning rate 0.1, at each step subtract 0.00001, got to -0.6 :))
 	///2nd attempt, lowering hidden layer from 500 to 100, const learning rate
 	///3rd attempt, back to 500 neurons in the hidden layer
+	/// ...
+	/// got to an accuracy of 95%
 
 	auto images = FileManager::loadMNISTImages("../../../assets/mnist/train-images.idx3-ubyte");
-	auto labels = FileManager::loadMNISTLabels("../../..t/assets/mnist/train-labels.idx1-ubyte");
+	auto labels = FileManager::loadMNISTLabels("../../../assets/mnist/train-labels.idx1-ubyte");
+	
 	
 	for (int i = 0;i < images.size();i++) {
 		
 		if (i % 100 == 0) std::cout << "Trained on " << i << " examples...\n";
 		for (int j = 0;j < 28 * 28;j++) {
-			o[0][j] = (static_cast<float>(images[i][j]) / 255);
+			o[0][j] = (static_cast<float>(images[i][j]) / 255) * 0.99 + 0.01;
 		}
 		forwardProp();
 		outputError(labels[i]);
 		backwardProp();
 	}
+	
 	saveToFile();
+}
+void NN::test() {
+	auto images = FileManager::loadMNISTImages("../../../assets/mnist/test-images.idx3-ubyte");
+	auto labels = FileManager::loadMNISTLabels("../../../assets/mnist/test-labels.idx1-ubyte");
+
+	if (images.size() != labels.size()) {
+		std::cout << "Something wrong!";
+		return;
+	}
+	int correct = 0;
+	for (int i = 0;i < images.size();i++) {
+		if (i % 100 == 0) std::cout << "Tested " << i << " examples...\n";
+		for (int j = 0;j < 28 * 28;j++) {
+			o[0][j] = (static_cast<float>(images[i][j]) / 255) * 0.99 + 0.01;
+		}
+		forwardProp();
+		int label = -1;
+		float maxim = 0;
+		for (int j = 0;j <= 9;j++) {
+			if (maxim < o[layersCount - 1][j]) {
+				label = j; maxim = o[layersCount - 1][j];
+			}
+		}
+		if (label == labels[i]) correct++;
+	}
+	std::cout << "\nTested...\n" << correct << " out of " << images.size() << "( "<<100.0f * correct / images.size()<<"% )";
+
 }
 
 
@@ -118,7 +149,7 @@ void NN::backwardProp() {
 	}
 	for (int layer = 1; layer < layersCount; layer++) {
 		for (int i = 0; i < layersSizes[layer]; i++) {
-			float delta = learningRate * e[layer][i] * o[layer][i] * (o[layer][i] - 1);
+			float delta = learningRate * e[layer][i] * o[layer][i] * (1 - o[layer][i]);
 			for (int j = 0; j < layersSizes[layer - 1];j++) {
 				w[layer][i][j] += delta * o[layer - 1][j];	
 			}
@@ -127,29 +158,43 @@ void NN::backwardProp() {
 	}
 }
 
-void NN::print() {
-	for (int layer = 0; layer < layersCount - 1; layer++) {
+void NN::printParams() {
+	for (int layer = 0; layer < layersCount; layer++) {
 		std::cout << "-------------------------------\nLayer " << std::to_string(layer)<<'\n';
 		std::cout << "Weights:\n";
-		for (std::vector<float>& w : w[layer]) {
-			for (float& v : w) {
-				std::cout << v << ' ';
+		for (int i = 0;i < w[layer].size();i++) {
+			for (int j = 0;j < w[layer][i].size();j++) {
+				std::cout << w[layer][i][j] << ' ';
 			}
 			std::cout << '\n';
 		}
 
 		std::cout << "Biases:\n";
-		for (float& v : b[layer]) {
-			std::cout << v << ' ';
+		for (int i = 0;i<b[layer].size();i++) {
+			std::cout << b[layer][i] << ' ';
 		}
 		std::cout << '\n';
 	}
 }
+void NN::printOutputAndError() {
+	for (int layer = 0; layer < layersCount; layer++) {
+		std::cout << "-------------------------------\nLayer " << std::to_string(layer) << '\n';
+		std::cout << "Output:\n";
+		for(int i=0;i<o[layer].size();i++)
+			std::cout << o[layer][i] << ' ';	
+		
+		std::cout << "Error:\n";
+		for (int i = 0;i < e[layer].size();i++)
+			std::cout << e[layer][i] << ' ';
+		std::cout << '\n';
+	}
+}
+
 
 void NN::outputError(int label) {
-	for (int i = 0;i <= 9;i++)
-		e[layersCount - 1][i] = o[layersCount - 1][i];
-	e[layersCount - 1][label] -= 1.0f;
+	for (int i = 0; i <= 9; i++) {
+		e[layersCount - 1][i] = (i == label ? 0.99f : 0.01f) - o[layersCount - 1][i];
+	}
 }
 
 float NN::sigmoid(float n) {

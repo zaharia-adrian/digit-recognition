@@ -3,7 +3,7 @@
 Button::Button(std::string name, sf::Vector2f pos, std::function<void()> _onClick): onClick(_onClick){
 	box.setPosition(pos);
 	box.setSize({200,50});
-	box.setFillColor(sf::Color::Black);
+	box.setFillColor(sf::Color(56,66,76));
 
 	if (!font.loadFromFile("../../../assets/fonts/Roboto-Regular.ttf")) {
 		std::cout << "Could not load the font!";

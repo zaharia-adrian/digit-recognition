@@ -15,8 +15,8 @@ class Grid {
 
 	static const int gap = 3;
 	static const int boxSize = 20;
-	static const int posX = 200 - boxSize - gap;
-	static const int posY = 100;
+	static const int posX = 200;
+	static const int posY = 120;
 
 	bool isMouseOver(sf::Vector2i);
 

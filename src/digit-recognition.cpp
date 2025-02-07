@@ -7,20 +7,19 @@ const int gridSize = 28; ///standard for MNIST dataset
 
 int main()
 {
-	NN n({28*28,500,10});
-
+	NN nn({ gridSize * gridSize,500, 10 });
+	
 	sf::RenderWindow window(sf::VideoMode({ WIDTH, HEIGHT }), "Digit recognition");
 	window.setFramerateLimit(60);
 
-	
-	Plot p;
+	Plot plot;
 	Grid grid(gridSize, gridSize); 
 
-	Button reset("Reset", { 1000,70 }, [&]() {
+	Button resetBtn("Reset", { 1000,120 }, [&]() {
 		grid.reset();
 	});
-	Button query("Query", { 1000, 150 }, [&]() {
-		p.update(n.query(grid.getV()));
+	Button queryBtn("Query", { 1000, 200 }, [&]() {
+		plot.update(nn.query(grid.getV()));
 	});
 	
 	while (window.isOpen()) {
@@ -32,8 +31,8 @@ int main()
 			}
 			grid.handleEvent(window, event);
 
-			reset.handleEvent(window, event);
-			query.handleEvent(window, event);
+			resetBtn.handleEvent(window, event);
+			queryBtn.handleEvent(window, event);
 
 		}
 		window.clear(sf::Color(36,46,56));
@@ -41,10 +40,10 @@ int main()
 
 		grid.drawTo(window);
 
-		reset.drawTo(window);
-		query.drawTo(window);
+		resetBtn.drawTo(window);
+		queryBtn.drawTo(window);
 
-		p.drawTo(window);
+		plot.drawTo(window);
 
 		window.display();
 	}

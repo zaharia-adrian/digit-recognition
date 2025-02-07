@@ -6,6 +6,8 @@
 class Plot {
 
 	sf::RectangleShape r;
+	sf::Font font;
+	sf::Text digit;
 	const float width = 40, height = 200, gap = 15;
 	std::vector<float> v;
 
